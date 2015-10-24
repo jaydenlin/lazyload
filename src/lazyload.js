@@ -188,13 +188,21 @@
     }
 
     function _setSrcAndSrcset(target, source, srcsetDataAttribute, srcDataAttribute) {
-        var srcSet = source.getAttribute('data-' + srcsetDataAttribute),
-            src = source.getAttribute('data-' + srcDataAttribute);
-        if (srcSet) {
-            target.setAttribute("srcset", srcSet);
-        }
-        if (src) {
-            target.setAttribute("src", src);
+        if (_animationFrameTicking === false) {
+
+            requestAnimationFrame(function () {
+
+                _animationFrameTicking = false;
+                var srcSet = source.getAttribute('data-' + srcsetDataAttribute),
+                    src = source.getAttribute('data-' + srcDataAttribute);
+                if (srcSet) {
+                    target.setAttribute("srcset", srcSet);
+                }
+                if (src) {
+                    target.setAttribute("src", src);
+                }
+            });
+            _animationFrameTicking = true;
         }
     }
 
@@ -299,47 +307,41 @@
             elements = this._elements,
             elementsLength = (!elements) ? 0 : elements.length,
             processedIndexes = [],
-            that=this;
-        if (_animationFrameTicking === false) {
+            that = this;
 
-            requestAnimationFrame(function () {
 
-                _animationFrameTicking = false;
-
-                for (i = 0; i < elementsLength; i++) {
-                    element = elements[i];
-                    /* If must skip_invisible and element is invisible, skip it */
-                    if (settings.skip_invisible && (element.offsetParent === null)) {
-                        continue;
-                    }
-                    if (_isInsideViewport(element, settings.container, settings.threshold)) {
-                        /* Forking behaviour depending on show_while_loading (true value is ideal for progressive jpeg). */
-                        if (settings.show_while_loading) {
-                            that._showOnAppear(element);
-                        } else {
-                            that._showOnLoad(element);
-                        }
-                        /* Marking the element as processed. */
-                        processedIndexes.push(i);
-                        element.wasProcessed = true;
-                    }
+        for (i = 0; i < elementsLength; i++) {
+            element = elements[i];
+            /* If must skip_invisible and element is invisible, skip it */
+            if (settings.skip_invisible && (element.offsetParent === null)) {
+                continue;
+            }
+            if (_isInsideViewport(element, settings.container, settings.threshold)) {
+                /* Forking behaviour depending on show_while_loading (true value is ideal for progressive jpeg). */
+                if (settings.show_while_loading) {
+                    that._showOnAppear(element);
+                } else {
+                    that._showOnLoad(element);
                 }
-                /* Removing processed elements from that._elements. */
-                while (processedIndexes.length > 0) {
-                    elements.splice(processedIndexes.pop(), 1);
-                    /* Calling the end loop callback */
-                    if (settings.callback_processed) {
-                        settings.callback_processed(elements.length);
-                    }
-                }
-                /* Stop listening to scroll event when 0 elements remains */
-                if (elementsLength === 0) {
-                    that._stopScrollHandler();
-                }
-
-            });
-            _animationFrameTicking = true;
+                /* Marking the element as processed. */
+                processedIndexes.push(i);
+                element.wasProcessed = true;
+            }
         }
+        /* Removing processed elements from that._elements. */
+        while (processedIndexes.length > 0) {
+            elements.splice(processedIndexes.pop(), 1);
+            /* Calling the end loop callback */
+            if (settings.callback_processed) {
+                settings.callback_processed(elements.length);
+            }
+        }
+        /* Stop listening to scroll event when 0 elements remains */
+        if (elementsLength === 0) {
+            that._stopScrollHandler();
+        }
+
+
     };
 
     LazyLoad.prototype._purgeElements = function () {
@@ -395,7 +397,7 @@
         throttle = this._settings.throttle;
 
         if (throttle !== 0) {
-            console.log("1");
+
             remainingTime = throttle - (now - this._previousLoopTime);
             if (remainingTime <= 0 || remainingTime > throttle) {
                 if (this._loopTimeout) {
@@ -412,13 +414,14 @@
                 }, this), remainingTime);
             }
         } else {
-            console.log("2");
+
             this._loopThroughElements();
         }
 
     };
 
     LazyLoad.prototype.update = function () {
+
         this._elements = _convertToArray(this._queryOriginNode.querySelectorAll(this._settings.elements_selector));
         this._purgeElements();
         this._loopThroughElements();
