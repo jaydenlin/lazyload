@@ -188,8 +188,8 @@
     }
 
     function _setSrcAndSrcset(target, source, srcsetDataAttribute, srcDataAttribute) {
-        if (_animationFrameTicking === false) {
-
+        //if (_animationFrameTicking === false) {
+            
             requestAnimationFrame(function () {
 
                 _animationFrameTicking = false;
@@ -202,8 +202,9 @@
                     target.setAttribute("src", src);
                 }
             });
-            _animationFrameTicking = true;
-        }
+//            _animationFrameTicking = true;
+//            
+//        }
     }
 
     function _bind(fn, obj) {
